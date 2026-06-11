@@ -1,0 +1,61 @@
+package com.example.shimejiapp
+
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.util.AttributeSet
+import androidx.appcompat.widget.AppCompatTextView
+
+/**
+ * An outlined (stroked) TextView that is highly readable on any background.
+ * 
+ * It resolves the common Android TextView layout/draw recursion bug when calling
+ * setTextColor() inside onDraw() by utilizing a rendering lock flag (isDrawing).
+ */
+class OutlineTextView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : AppCompatTextView(context, attrs, defStyleAttr) {
+
+    /** Stroke outline color */
+    var outlineColor: Int = Color.BLACK
+
+    /** Stroke outline width in pixels */
+    var outlineWidth: Float = 6f
+
+    private var isDrawing = false
+
+    override fun invalidate() {
+        if (!isDrawing) {
+            super.invalidate()
+        }
+    }
+
+    override fun requestLayout() {
+        if (!isDrawing) {
+            super.requestLayout()
+        }
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        isDrawing = true
+        
+        // Step 1: Draw the text outline (Stroke)
+        val originalColor = textColors.defaultColor
+        paint.style       = Paint.Style.STROKE
+        paint.strokeWidth = outlineWidth
+        paint.strokeJoin  = Paint.Join.ROUND   // Smooth corners
+        paint.strokeCap   = Paint.Cap.ROUND
+        setTextColor(outlineColor)
+        super.onDraw(canvas)
+
+        // Step 2: Draw the main text (Fill)
+        paint.style = Paint.Style.FILL
+        setTextColor(originalColor)
+        super.onDraw(canvas)
+        
+        isDrawing = false
+    }
+}
